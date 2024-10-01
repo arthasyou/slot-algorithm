@@ -14,7 +14,7 @@ pub enum WaveState {
     Fall,
 }
 
-pub fn get_state(pot: f64, wave: Vec<f64>) -> WaveState {
+pub fn get_state(pot: f64, wave: &Vec<f64>) -> WaveState {
     let h = wave[0];
     if pot > h {
         WaveState::Fall
@@ -81,19 +81,21 @@ fn ratio_to_len(len: f64, ratios: Vec<f64>) -> Vec<f64> {
 
 fn driving_wave(n: usize) -> Vec<f64> {
     let coefficients = span_driving_coefficient(n);
+    println!("driving coefficients: {:?}", coefficients);
     span_ratio(coefficients)
 }
 
 fn span_driving_coefficient(n: usize) -> Vec<f64> {
     let mut coefficients = Vec::new();
-    let mut last_wave = 1.0;
+    // let mut last_wave = 1.0;
     for i in 1..=n {
         let ratio = if i % 2 == 1 {
             *GOLD_MORE.choose(&mut rand::thread_rng()).unwrap()
         } else {
-            -last_wave * *GOLD_LESS.choose(&mut rand::thread_rng()).unwrap()
+            -*GOLD_LESS.choose(&mut rand::thread_rng()).unwrap()
+            // -last_wave * *GOLD_LESS.choose(&mut rand::thread_rng()).unwrap()
         };
-        last_wave = ratio;
+        // last_wave = ratio;
         coefficients.push(ratio);
     }
     coefficients
