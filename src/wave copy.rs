@@ -8,19 +8,29 @@ const GOLD_MORE: [f64; 3] = [1.0, 1.309, 1.618];
 const GOLD_ADJST_MORE: [f64; 3] = [1.0, 1.309, 1.618];
 const GOLD_ADJST_LESS: [f64; 9] = [0.618, 0.618, 0.764, 0.764, 0.764, 1.0, 1.0, 1.0, 1.171];
 
-pub fn create_wave(pot: u64, baseline: u64, boundary: u64) -> Vec<u64> {
+#[derive(Debug, PartialEq)]
+pub enum WaveState {
+    Ascent,
+    Fall,
+}
+
+pub fn get_state(pot: f64, wave: f64) -> WaveState {
+    if pot > wave {
+        WaveState::Fall
+    } else {
+        WaveState::Ascent
+    }
+}
+
+pub fn create_wave(pot: f64, baseline: f64, boundary: f64) -> Vec<f64> {
     let down = pot - baseline;
     let up = boundary - pot;
-    let rand = rand::thread_rng().gen_range(0..(down + up));
-
-    let wave: Vec<f64> = if rand < up {
-        span_wave(pot as f64, boundary as f64)
+    let rand = rand::thread_rng().gen_range(0.0..(down + up));
+    if rand < up {
+        span_wave(pot, boundary)
     } else {
-        span_wave(pot as f64, baseline as f64)
-    };
-
-    // 将 `Vec<f64>` 转换为 `Vec<u64>`
-    wave.into_iter().map(|v| v.round() as u64).collect()
+        span_wave(pot, baseline)
+    }
 }
 
 fn span_wave(from: f64, to: f64) -> Vec<f64> {
