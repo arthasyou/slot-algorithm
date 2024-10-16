@@ -29,7 +29,6 @@ impl Pool {
     pub fn new(
         id: u32,
         bet_unit: u64,
-        ratio: u64,
         brokerage_ratio: u64,
         brokerage: u64,
         pot_ratio: u64,
@@ -62,11 +61,13 @@ impl Pool {
     }
 
     /// 根据传入的 WaveState 执行 draw 方法
-    pub fn draw(&mut self, bets: u64, odds: u64, flag: WaveState) {
+    pub fn draw(&mut self, bets: u64, odds: u64) {
+        let state = self.get_state();
         self.update_pool_with_bets(bets);
-        match flag {
-            WaveState::Ascent => self.ascent(bets, odds),
-            WaveState::Fall => self.fall(bets, odds),
+        let reward = self.calculate_reward(bets, odds);
+        match state {
+            WaveState::Ascent => self.ascent(odds, reward),
+            WaveState::Fall => self.fall(bets, reward),
         }
     }
 
@@ -93,8 +94,7 @@ impl Pool {
     }
 
     /// 上升逻辑处理，根据状态决定是否减少池底或调整波浪
-    fn ascent(&mut self, bets: u64, odds: u64) {
-        let reward = self.calculate_reward(bets, odds);
+    fn ascent(&mut self, odds: u64, reward: u64) {
         match self.analyzing_ascent(reward) {
             true => match self.ascent_run(odds) {
                 true => self.decrease_pot(reward),
@@ -133,32 +133,28 @@ impl Pool {
     }
 
     /// 下降逻辑处理，根据状态决定是否减少池底或调整波浪
-    fn fall(&mut self, bets: u64, odds: u64) {
-        let reward = self.calculate_reward(bets, odds);
+    fn fall(&mut self, odds: u64, reward: u64) {
         match self.analyzing_fall(reward) {
-            Some(true) => match self.fall_run(odds) {
+            FallState::Normal => match self.fall_run(odds) {
                 true => self.fall_action(odds),
                 false => (),
             },
-            Some(false) => self.fall_action(odds),
-            None => self.create_new_wave_and_segment(),
+            FallState::Win => self.fall_action(odds),
+            FallState::Reflesh => self.create_new_wave_and_segment(),
         }
     }
 
-    fn analyzing_fall(&self, reward: u64) -> Option<bool> {
-        // 使用 safe_subtract_pot 函数
-        let remaining_pot = self.safe_subtract_pot(reward)?;
-
-        if self.base_line >= remaining_pot {
-            return Some(false);
+    fn analyzing_fall(&self, reward: u64) -> FallState {
+        match reward > self.pot {
+            true => {
+                let (top, _) = self.segment;
+                match self.pot > top {
+                    true => FallState::Win,
+                    false => FallState::Normal,
+                }
+            }
+            false => FallState::Reflesh,
         }
-
-        let (top, _) = self.segment;
-        if self.pot > top {
-            return Some(false);
-        }
-
-        Some(true)
     }
 
     /// 下降时执行的奖励计算及判定
@@ -230,10 +226,26 @@ impl Pool {
         let waves = vec![self.pot, self.base_line, self.boundary]; // 示例值
         self.waves = waves;
     }
+
+    fn get_state(&self) -> WaveState {
+        let (_, destination) = self.segment;
+        if self.pot > destination {
+            WaveState::Fall
+        } else {
+            WaveState::Ascent
+        }
+    }
 }
 
 #[derive(Debug)]
 pub enum WaveState {
     Ascent,
     Fall,
+}
+
+#[derive(Debug)]
+pub enum FallState {
+    Normal,
+    Win,
+    Reflesh,
 }

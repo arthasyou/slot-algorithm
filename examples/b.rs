@@ -1,4 +1,4 @@
-use slot_algorithm::pool::{Pool, WaveState};
+use slot_algorithm::pool::Pool;
 
 fn main() {
     let mut pool = Pool::new(
@@ -6,7 +6,6 @@ fn main() {
         1,
         1000,
         500,
-        0,
         9500,
         5000000,
         0,
@@ -19,9 +18,9 @@ fn main() {
         (0, 1000000000),
     );
 
-    pool.draw(1, 2, WaveState::Ascent);
+    pool.draw(1, 2);
     println!("{:?}", pool);
 
-    pool.draw(1, 50, WaveState::Fall);
+    pool.draw(1, 5);
     println!("{:?}", pool);
 }
