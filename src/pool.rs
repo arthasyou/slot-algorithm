@@ -84,15 +84,6 @@ impl Pool {
         bets * odds * RATIO
     }
 
-    /// 检查是否符合下降条件
-    fn safe_subtract_pot(&self, reward: u64) -> Option<u64> {
-        if reward > self.pot {
-            None // 如果 reward 大于 pot，则返回 None，表示溢出
-        } else {
-            Some(self.pot - reward) // 否则返回相减结果
-        }
-    }
-
     /// 上升逻辑处理，根据状态决定是否减少池底或调整波浪
     fn ascent(&mut self, odds: u64, reward: u64) {
         match self.analyzing_ascent(reward) {
