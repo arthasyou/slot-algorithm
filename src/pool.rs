@@ -1,4 +1,5 @@
-use rand::Rng;
+use crate::wave;
+use rand::{rngs::ThreadRng, Rng};
 
 const ASCENT_SPEED_RATE: u64 = 2000;
 const SPEED_RATE: u64 = 1000;
@@ -22,6 +23,7 @@ pub struct Pool {
     advance: u64,         // 垫分
     waves: Vec<u64>,      // 波浪
     segment: (u64, u64),  // 分段
+    rng: ThreadRng,       // 新增字段：随机数生成器
 }
 
 impl Pool {
@@ -57,20 +59,30 @@ impl Pool {
             advance,
             waves,
             segment,
+            rng: rand::thread_rng(), // 初始化 ThreadRng 生成器
         }
     }
 
-    /// 根据传入的 WaveState 执行 draw 方法
-    pub fn draw(&mut self, bets: u64, odds: u64) {
+    /// 根据传入的 WaveState 执行 draw 方法，并返回命中结果和 reward 值
+    pub fn draw(&mut self, bets: u64, odds: u64) -> (bool, u64) {
         let state = self.get_state();
         self.update_pool_with_bets(bets);
         let reward = self.calculate_reward(bets, odds);
-        match state {
+
+        let hit = match state {
             WaveState::Ascent => self.ascent(odds, reward),
             WaveState::Fall => self.fall(bets, reward),
+        };
+
+        if hit {
+            (true, reward)
+        } else {
+            (false, 0) // 未命中时返回 0
         }
     }
+}
 
+impl Pool {
     /// 更新池底金额及相关属性
     fn update_pool_with_bets(&mut self, bets: u64) {
         self.suction += bets;
@@ -84,14 +96,14 @@ impl Pool {
         bets * odds * RATIO
     }
 
-    /// 上升逻辑处理，根据状态决定是否减少池底或调整波浪
-    fn ascent(&mut self, odds: u64, reward: u64) {
-        match self.analyzing_ascent(reward) {
-            true => match self.ascent_run(odds) {
-                true => self.decrease_pot(reward),
-                false => self.ascent_action(),
-            },
-            false => self.ascent_action(),
+    /// 上升逻辑处理，根据状态决定是否减少池底或调整波浪，返回是否命中
+    fn ascent(&mut self, odds: u64, reward: u64) -> bool {
+        if self.analyzing_ascent(reward) && self.ascent_run(odds) {
+            self.decrease_pot(reward);
+            true
+        } else {
+            self.ascent_action();
+            false
         }
     }
 
@@ -109,7 +121,7 @@ impl Pool {
     }
 
     /// 上升时执行的奖励计算及判定
-    fn ascent_run(&self, odds: u64) -> bool {
+    fn ascent_run(&mut self, odds: u64) -> bool {
         let new_odds = odds * (ASCENT_SPEED_RATE + RATIO); // 计算并放大到万分比表示
         self.run(new_odds)
     }
@@ -119,19 +131,29 @@ impl Pool {
         let (_, destination) = self.segment;
         let pot = self.pot;
         if pot > destination {
-            self.reside_wave_and_segment();
+            self.consume_and_segment();
         }
     }
 
-    /// 下降逻辑处理，根据状态决定是否减少池底或调整波浪
-    fn fall(&mut self, odds: u64, reward: u64) {
+    /// 下降逻辑处理，根据状态决定是否减少池底或调整波浪，返回是否命中
+    fn fall(&mut self, odds: u64, reward: u64) -> bool {
         match self.analyzing_fall(reward) {
-            FallState::Normal => match self.fall_run(odds) {
-                true => self.fall_action(odds),
-                false => (),
-            },
-            FallState::Win => self.fall_action(odds),
-            FallState::Reflesh => self.create_new_wave_and_segment(),
+            FallState::Normal => {
+                if self.fall_run(odds) {
+                    self.fall_action(odds);
+                    true
+                } else {
+                    false
+                }
+            }
+            FallState::Win => {
+                self.fall_action(odds);
+                true
+            }
+            FallState::Reflesh => {
+                self.create_new_wave_and_segment();
+                false
+            }
         }
     }
 
@@ -149,7 +171,7 @@ impl Pool {
     }
 
     /// 下降时执行的奖励计算及判定
-    fn fall_run(&self, odds: u64) -> bool {
+    fn fall_run(&mut self, odds: u64) -> bool {
         let new_odds = if odds >= BIG_ODDS {
             odds * (RATIO - SPEED_BIG)
         } else {
@@ -164,21 +186,13 @@ impl Pool {
         self.decrease_pot(reward);
         let (_, destination) = self.segment;
         if self.pot <= destination as u64 {
-            self.reside_wave_and_segment();
-        }
-    }
-
-    /// 生成新的波浪及分段
-    fn create_new_wave_and_segment(&mut self) {
-        self.create_wave();
-        if let Some(new_wave) = self.waves.get(0).cloned() {
-            self.create_segment(new_wave);
+            self.consume_and_segment();
         }
     }
 
     /// 生成随机数判断胜负
-    fn run(&self, odds: u64) -> bool {
-        let rand = rand::thread_rng().gen_range(1..=odds);
+    fn run(&mut self, odds: u64) -> bool {
+        let rand = self.rng.gen_range(1..=odds);
         rand <= RATIO
     }
 
@@ -194,16 +208,23 @@ impl Pool {
         }
     }
 
-    /// 调整波浪及分段
-    fn reside_wave_and_segment(&mut self) {
-        let mut wave_iter = self.waves.clone().into_iter();
-        match wave_iter.next() {
-            Some(wave) => {
-                self.waves = wave_iter.collect();
-                self.create_segment(wave);
+    /// 从波浪中获取第一个元素并创建分段，如果波浪为空则创建新波浪
+    fn consume_and_segment(&mut self) {
+        if let Some(wave) = self.waves.first().cloned() {
+            self.waves.remove(0); // 删除第一个元素
+            self.create_segment(wave);
+
+            // 如果 waves 已空，则创建新的波浪
+            if self.waves.is_empty() {
+                self.create_wave();
             }
-            None => self.create_wave(),
         }
+    }
+
+    /// 生成新的波浪及分段
+    fn create_new_wave_and_segment(&mut self) {
+        self.create_wave(); // 先创建新的波浪
+        self.consume_and_segment(); // 调用通用函数处理
     }
 
     /// 创建新的分段
@@ -214,7 +235,11 @@ impl Pool {
 
     /// 创建新的波浪
     fn create_wave(&mut self) {
-        let waves = vec![self.pot, self.base_line, self.boundary]; // 示例值
+        let waves = wave::create_wave(
+            self.pot * RATIO,
+            self.base_line * RATIO,
+            self.boundary * RATIO,
+        );
         self.waves = waves;
     }
 

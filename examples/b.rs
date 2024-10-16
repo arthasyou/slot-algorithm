@@ -18,9 +18,9 @@ fn main() {
         (0, 1000000000),
     );
 
-    pool.draw(1, 2);
-    println!("{:?}", pool);
+    let a = pool.draw(1, 2);
+    println!("{:?}", a);
 
-    pool.draw(1, 5);
-    println!("{:?}", pool);
+    let b = pool.draw(1, 5);
+    println!("{:?}", b);
 }
