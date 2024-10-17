@@ -23,6 +23,15 @@ pub fn create_wave(pot: u64, baseline: u64, boundary: u64) -> Vec<u64> {
     wave.into_iter().map(|v| v.round() as u64).collect()
 }
 
+pub fn create_segment(waves: &mut Vec<u64>, pot: u64) -> (u64, u64) {
+    if let Some(wave) = waves.first().cloned() {
+        waves.remove(0);
+        (pot, wave)
+    } else {
+        (pot, 0)
+    }
+}
+
 fn span_wave(from: f64, to: f64) -> Vec<f64> {
     let len = to - from;
     let wave = generate_wave(len);
@@ -70,7 +79,6 @@ fn ratio_to_len(len: f64, ratios: Vec<f64>) -> Vec<f64> {
 
 fn driving_wave(n: usize) -> Vec<f64> {
     let coefficients = span_driving_coefficient(n);
-    println!("driving coefficients: {:?}", coefficients);
     span_ratio(coefficients)
 }
 
