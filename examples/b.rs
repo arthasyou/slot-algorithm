@@ -4,6 +4,7 @@ fn main() {
     let mut pool = Pool::new(
         1,
         1,
+        1,
         1000,
         500,
         9500,

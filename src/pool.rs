@@ -10,6 +10,7 @@ const RATIO: u64 = 10000; //比率 万分比
 #[derive(Debug, Clone)]
 pub struct Pool {
     id: u32,              // ID
+    owner_id: u32,        // 所有者 ID
     bet_unit: u64,        // 底分
     brokerage_ratio: u64, // 佣金比率
     brokerage: u64,       // 佣金
@@ -30,6 +31,7 @@ impl Pool {
     /// 初始化一个新的 Pool 实例
     pub fn new(
         id: u32,
+        owner_id: u32,
         bet_unit: u64,
         brokerage_ratio: u64,
         brokerage: u64,
@@ -46,6 +48,7 @@ impl Pool {
     ) -> Self {
         Pool {
             id,
+            owner_id,
             bet_unit,
             brokerage_ratio,
             brokerage,
@@ -79,6 +82,20 @@ impl Pool {
         } else {
             (false, 0) // 未命中时返回 0
         }
+    }
+
+    pub fn get_id(&self) -> u32 {
+        self.id
+    }
+
+    pub fn get_owner_id(&self) -> u32 {
+        self.owner_id
+    }
+
+    /// 更新 brokerage_ratio 和 pot_ratio，确保它们之和等于 RATIO
+    pub fn update_ratios(&mut self, new_brokerage_ratio: u64) {
+        self.brokerage_ratio = new_brokerage_ratio;
+        self.pot_ratio = RATIO - new_brokerage_ratio;
     }
 }
 
