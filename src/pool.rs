@@ -62,14 +62,14 @@ impl Pool {
     }
 
     /// 根据传入的 WaveState 执行 draw 方法，并返回命中结果和 reward 值
-    pub fn draw(&mut self, bets: &u64, odds: &u64) -> (bool, u64) {
+    pub fn draw(&mut self, bets: u64, odds: u64) -> (bool, u64) {
         let state = self.get_state();
         self.update_pool_with_bets(bets);
         let reward = self.calculate_reward(bets, odds);
 
         let hit = match state {
-            WaveState::Ascent => self.ascent(odds, &reward),
-            WaveState::Fall => self.fall(odds, &reward),
+            WaveState::Ascent => self.ascent(odds, reward),
+            WaveState::Fall => self.fall(odds, reward),
         };
 
         if hit {
@@ -96,7 +96,7 @@ impl Pool {
 
 impl Pool {
     /// 更新池底金额及相关属性
-    fn update_pool_with_bets(&mut self, bets: &u64) {
+    fn update_pool_with_bets(&mut self, bets: u64) {
         self.suction += bets;
         let v = self.bet_unit * bets;
         self.pot += self.pot_ratio * v;
@@ -104,12 +104,12 @@ impl Pool {
     }
 
     /// 计算当前下注及赔率的奖励
-    fn calculate_reward(&self, bets: &u64, odds: &u64) -> u64 {
+    fn calculate_reward(&self, bets: u64, odds: u64) -> u64 {
         bets * odds * RATIO
     }
 
     /// 上升逻辑处理，根据状态决定是否减少池底或调整波浪，返回是否命中
-    fn ascent(&mut self, odds: &u64, reward: &u64) -> bool {
+    fn ascent(&mut self, odds: u64, reward: u64) -> bool {
         if self.analyzing_ascent(reward) && self.ascent_run(odds) {
             self.decrease_pot(reward);
             true
@@ -120,11 +120,11 @@ impl Pool {
     }
 
     /// 检查是否符合上升条件
-    fn analyzing_ascent(&self, reward: &u64) -> bool {
+    fn analyzing_ascent(&self, reward: u64) -> bool {
         let (bottom, _) = self.segment;
 
         // 检查是否会发生溢出
-        if self.pot < *reward {
+        if self.pot < reward {
             return false; // 如果 reward 大于 pot，则不符合条件
         }
 
@@ -132,7 +132,7 @@ impl Pool {
     }
 
     /// 上升时执行的奖励计算及判定
-    fn ascent_run(&mut self, odds: &u64) -> bool {
+    fn ascent_run(&mut self, odds: u64) -> bool {
         let new_odds = odds * (ASCENT_SPEED_RATE + RATIO); // 计算并放大到万分比表示
         self.run(new_odds)
     }
@@ -147,7 +147,7 @@ impl Pool {
     }
 
     /// 下降逻辑处理，根据状态决定是否减少池底或调整波浪，返回是否命中
-    fn fall(&mut self, odds: &u64, reward: &u64) -> bool {
+    fn fall(&mut self, odds: u64, reward: u64) -> bool {
         match self.analyzing_fall(reward) {
             FallState::Normal => {
                 if self.fall_run(odds) {
@@ -168,8 +168,8 @@ impl Pool {
         }
     }
 
-    fn analyzing_fall(&self, reward: &u64) -> FallState {
-        match *reward > self.pot {
+    fn analyzing_fall(&self, reward: u64) -> FallState {
+        match reward > self.pot {
             true => {
                 let (top, _) = self.segment;
                 match self.pot > top {
@@ -182,8 +182,8 @@ impl Pool {
     }
 
     /// 下降时执行的奖励计算及判定
-    fn fall_run(&mut self, odds: &u64) -> bool {
-        let new_odds = if *odds >= BIG_ODDS {
+    fn fall_run(&mut self, odds: u64) -> bool {
+        let new_odds = if odds >= BIG_ODDS {
             odds * (RATIO - SPEED_BIG)
         } else {
             odds * (RATIO - SPEED_RATE)
@@ -192,10 +192,10 @@ impl Pool {
     }
 
     /// 执行下降操作，更新池底及波浪
-    fn fall_action(&mut self, reward: &u64) {
+    fn fall_action(&mut self, reward: u64) {
         self.decrease_pot(reward);
         let (_, destination) = self.segment;
-        if self.pot <= destination as u64 {
+        if self.pot <= destination {
             self.consume_and_segment();
         }
     }
@@ -207,10 +207,10 @@ impl Pool {
     }
 
     /// 减少池底并将相应金额加入奖金，确保池底不会低于零
-    fn decrease_pot(&mut self, reward: &u64) {
-        if self.pot >= *reward {
-            self.pot -= *reward;
-            self.bonus += *reward;
+    fn decrease_pot(&mut self, reward: u64) {
+        if self.pot >= reward {
+            self.pot -= reward;
+            self.bonus += reward;
         } else {
             // 如果 reward 超过了 pot，仅能扣除 pot 的全部值，并增加相应的 bonus
             self.bonus += self.pot;

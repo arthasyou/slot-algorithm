@@ -96,7 +96,7 @@ impl FruitBet {
 
     fn draw(&self, level: &GeneralLevel, pool: &mut Pool) -> (bool, u64) {
         let odds = self.symbol.get_odds(level) as u64;
-        pool.draw(&self.value, &odds)
+        pool.draw(self.value, odds)
     }
 }
 
