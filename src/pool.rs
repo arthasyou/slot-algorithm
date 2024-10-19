@@ -1,5 +1,3 @@
-use std::sync::{Arc, Mutex};
-
 use crate::wave;
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
@@ -7,7 +5,7 @@ const ASCENT_SPEED_RATE: u64 = 2000;
 const SPEED_RATE: u64 = 1000;
 const SPEED_BIG: u64 = 8000;
 const BIG_ODDS: u64 = 50;
-const RATIO: u64 = 10000; //比率 万分比
+pub const RATIO: u64 = 10000; //比率 万分比
 
 #[derive(Debug, Clone)]
 pub struct Pool {
