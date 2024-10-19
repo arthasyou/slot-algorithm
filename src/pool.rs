@@ -11,22 +11,23 @@ const RATIO: u64 = 10000; //比率 万分比
 
 #[derive(Debug, Clone)]
 pub struct Pool {
-    id: u32,                 // ID
-    owner_id: u32,           // 所有者 ID
-    bet_unit: u64,           // 每分价值
-    brokerage_ratio: u64,    // 佣金比率
-    brokerage: u64,          // 佣金
-    pot_ratio: u64,          // 池底比率
-    pot: u64,                // 当前池底
-    suction: u64,            // 吸码量
-    base_line: u64,          // 底线
-    boundary: u64,           // 边界线
-    bonus: u64,              // 总赢分
-    jackpot: u64,            // 彩金
-    advance: u64,            // 垫分
-    waves: Vec<u64>,         // 波浪
-    segment: (u64, u64),     // 分段
-    rng: Arc<Mutex<StdRng>>, // 新增字段：随机数生成器
+    id: u32,              // ID
+    owner_id: u32,        // 所有者 ID
+    bet_unit: u64,        // 每分价值
+    brokerage_ratio: u64, // 佣金比率
+    brokerage: u64,       // 佣金
+    pot_ratio: u64,       // 池底比率
+    pot: u64,             // 当前池底
+    suction: u64,         // 吸码量
+    base_line: u64,       // 底线
+    boundary: u64,        // 边界线
+    bonus: u64,           // 总赢分
+    jackpot: u64,         // 彩金
+    advance: u64,         // 垫分
+    waves: Vec<u64>,      // 波浪
+    segment: (u64, u64),  // 分段
+    rng: StdRng,
+    // rng: Arc<Mutex<StdRng>>, // 新增字段：随机数生成器
 }
 
 impl Pool {
@@ -60,7 +61,8 @@ impl Pool {
             advance: pot,
             waves,
             segment,
-            rng: Arc::new(Mutex::new(rng)), // 初始化 ThreadRng 生成器
+            rng,
+            // rng: Arc::new(Mutex::new(rng)), // 初始化 ThreadRng 生成器
         }
     }
 
@@ -205,8 +207,8 @@ impl Pool {
 
     /// 生成随机数判断胜负
     fn run(&mut self, odds: u64) -> bool {
-        let mut rng = self.rng.lock().unwrap();
-        let rand = rng.gen_range(1..=odds);
+        // let mut rng = self.rng.lock().unwrap();
+        let rand = self.rng.gen_range(1..=odds);
         rand <= RATIO
     }
 
