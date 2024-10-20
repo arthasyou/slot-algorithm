@@ -12,15 +12,16 @@ pub struct Pool {
     id: u32,              // ID
     owner_id: u32,        // 所有者 ID
     bet_unit: u64,        // 每分价值
-    brokerage_ratio: u64, // 佣金比率
-    brokerage: u64,       // 佣金
-    pot_ratio: u64,       // 池底比率
-    pot: u64,             // 当前池底
-    suction: u64,         // 吸码量
     base_line: u64,       // 底线
     boundary: u64,        // 边界线
-    bonus: u64,           // 总赢分
+    brokerage_ratio: u64, // 佣金比率
+    jackpot_ratio: u64,   // 彩金比率
+    pot_ratio: u64,       // 池底比率
+    pot: u64,             // 当前池底
     jackpot: u64,         // 彩金
+    suction: u64,         // 吸码量
+    brokerage: u64,       // 佣金
+    bonus: u64,           // 总赢分
     advance: u64,         // 垫分
     waves: Vec<u64>,      // 波浪
     segment: (u64, u64),  // 分段
@@ -35,33 +36,59 @@ impl Pool {
         owner_id: u32,
         bet_unit: u64,
         brokerage_ratio: u64,
+        jackpot_ratio: u64,
         boundary: u64,
         advance: u64,
     ) -> Self {
         let pot = advance * RATIO;
         let boundary = boundary * RATIO;
-        let mut waves = wave::create_wave(pot, 0, boundary);
-        let segment = wave::create_segment(&mut waves, pot);
-        let rng = StdRng::from_entropy();
-        Pool {
+        create_pool(
             id,
             owner_id,
             bet_unit,
-            brokerage_ratio,
-            brokerage: 0,
-            pot_ratio: RATIO - brokerage_ratio,
-            pot,
-            suction: 0,
-            base_line: 0,
+            0,
             boundary,
-            bonus: 0,
-            jackpot: 0,
-            advance: pot,
-            waves,
-            segment,
-            rng,
-            // rng: Arc::new(Mutex::new(rng)), // 初始化 ThreadRng 生成器
-        }
+            brokerage_ratio,
+            jackpot_ratio,
+            pot,
+            0,
+            0,
+            0,
+            0,
+            pot,
+        )
+    }
+
+    pub fn load_pool(
+        id: u32,
+        owner_id: u32,
+        bet_unit: u64,
+        base_line: u64,
+        boundary: u64,
+        brokerage_ratio: u64,
+        jackpot_ratio: u64,
+        pot: u64,
+        jackpot: u64,
+        suction: u64,
+        brokerage: u64,
+        bonus: u64,
+        advance: u64,
+    ) -> Self {
+        create_pool(
+            id,
+            owner_id,
+            bet_unit,
+            base_line,
+            boundary,
+            brokerage_ratio,
+            jackpot_ratio,
+            pot,
+            jackpot,
+            suction,
+            brokerage,
+            bonus,
+            advance,
+        )
     }
 
     /// 根据传入的 WaveState 执行 draw 方法，并返回命中结果和 reward 值
@@ -97,13 +124,52 @@ impl Pool {
     }
 }
 
+fn create_pool(
+    id: u32,
+    owner_id: u32,
+    bet_unit: u64,
+    base_line: u64,
+    boundary: u64,
+    brokerage_ratio: u64,
+    jackpot_ratio: u64,
+    pot: u64,
+    jackpot: u64,
+    suction: u64,
+    brokerage: u64,
+    bonus: u64,
+    advance: u64,
+) -> Pool {
+    let mut waves = wave::create_wave(pot, 0, boundary);
+    let segment = wave::create_segment(&mut waves, pot);
+    let rng = StdRng::from_entropy();
+    Pool {
+        id,
+        owner_id,
+        bet_unit,
+        brokerage_ratio,
+        jackpot_ratio,
+        base_line,
+        boundary,
+        pot_ratio: RATIO - brokerage_ratio - jackpot_ratio,
+        pot,
+        jackpot,
+        suction,
+        brokerage,
+        bonus,
+        advance,
+        waves,
+        segment,
+        rng,
+    }
+}
+
 impl Pool {
     /// 更新池底金额及相关属性
-    fn update_pool_with_bets(&mut self, bets: u64) {
-        self.suction += bets;
-        let v = self.bet_unit * bets;
-        self.pot += self.pot_ratio * v;
-        self.brokerage += self.brokerage_ratio * v;
+    fn update_pool_with_bets(&mut self, bet: u64) {
+        self.suction += bet;
+        self.pot += self.pot_ratio * bet;
+        self.brokerage += self.brokerage_ratio * bet;
+        self.jackpot += self.jackpot_ratio * bet;
     }
 
     /// 计算当前下注及赔率的奖励
