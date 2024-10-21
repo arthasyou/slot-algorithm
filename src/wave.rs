@@ -10,7 +10,7 @@ const GOLD_ADJST_LESS: [f64; 9] = [0.618, 0.618, 0.764, 0.764, 0.764, 1.0, 1.0, 
 
 pub fn create_wave(pot: u64, baseline: u64, boundary: u64) -> Vec<u64> {
     let down = pot - baseline;
-    let up = boundary - pot;
+    let up = if pot > boundary { 0 } else { boundary - pot };
     let rand = rand::thread_rng().gen_range(0..(down + up));
 
     let wave: Vec<f64> = if rand < up {

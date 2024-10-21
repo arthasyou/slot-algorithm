@@ -245,7 +245,7 @@ impl Pool {
     }
 
     fn analyzing_fall(&self, reward: u64) -> FallState {
-        match reward > self.pot {
+        match reward < self.pot {
             true => {
                 let (top, _) = self.segment;
                 match self.pot > top {
