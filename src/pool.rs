@@ -238,7 +238,8 @@ impl Pool {
             }
             FallState::Reflesh => {
                 println!("reflush fall");
-                self.create_new_wave_and_segment();
+                self.consume_and_segment();
+                // self.create_new_wave_and_segment();
                 false
             }
         }
@@ -312,11 +313,11 @@ impl Pool {
         }
     }
 
-    /// 生成新的波浪及分段
-    fn create_new_wave_and_segment(&mut self) {
-        self.create_wave(); // 先创建新的波浪
-        self.consume_and_segment(); // 调用通用函数处理
-    }
+    // /// 生成新的波浪及分段
+    // fn create_new_wave_and_segment(&mut self) {
+    //     self.create_wave(); // 先创建新的波浪
+    //     self.consume_and_segment(); // 调用通用函数处理
+    // }
 
     /// 创建新的分段
     fn create_segment(&mut self, wave: u64) {
