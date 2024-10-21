@@ -253,7 +253,10 @@ impl Pool {
                     false => FallState::Normal,
                 }
             }
-            false => FallState::Reflesh,
+            false => {
+                println!("reward: {}, Pot: {}", reward, self.pot);
+                FallState::Reflesh
+            }
         }
     }
 
