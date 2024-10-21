@@ -140,7 +140,7 @@ impl FruitSymbol {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FruitBet {
     pub symbol: FruitSymbol,
     pub value: u32,
@@ -162,7 +162,7 @@ fn get_furit_postition(symbol: &FruitSymbol, level: &GeneralLevel, rng: &mut Std
     symbol.get_position(level, rng)
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FruitReward {
     pub symbol: FruitSymbol,
     pub bet: u64,
@@ -181,7 +181,7 @@ impl FruitReward {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FruitDraw {
     pub rewards: Vec<FruitReward>,
     pub positions: Vec<u8>,
