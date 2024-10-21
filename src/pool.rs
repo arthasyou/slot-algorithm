@@ -312,7 +312,7 @@ impl Pool {
 
     /// 创建新的波浪
     fn create_wave(&mut self) {
-        let waves = wave::create_wave(self.pot, self.base_line, self.boundary);
+        let waves = wave::create_wave(self.pot, self.base_line, self.boundary, self.get_mut_rng());
         self.waves = waves;
     }
 
