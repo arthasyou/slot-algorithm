@@ -118,6 +118,14 @@ impl Pool {
         self.brokerage_ratio = new_brokerage_ratio;
         self.pot_ratio = RATIO - new_brokerage_ratio;
     }
+
+    pub fn get_segment(&self) -> (u64, u64) {
+        self.segment
+    }
+
+    pub fn get_waves_len(&self) -> usize {
+        self.waves.len()
+    }
 }
 
 fn create_pool(
