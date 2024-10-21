@@ -90,7 +90,7 @@ impl Pool {
     pub fn draw(&mut self, bets: u64, odds: u64) -> (bool, u64) {
         let state = self.get_state();
         self.update_pool_with_bets(bets);
-        let reward = self.calculate_reward(bets, odds);
+        let (raw_reward, reward) = self.calculate_reward(bets, odds);
 
         let hit = match state {
             WaveState::Ascent => self.ascent(odds, reward),
@@ -98,7 +98,7 @@ impl Pool {
         };
 
         if hit {
-            (true, reward)
+            (true, raw_reward)
         } else {
             (false, 0) // 未命中时返回 0
         }
@@ -171,8 +171,10 @@ impl Pool {
     }
 
     /// 计算当前下注及赔率的奖励
-    fn calculate_reward(&self, bets: u64, odds: u64) -> u64 {
-        bets * odds * RATIO
+    fn calculate_reward(&self, bets: u64, odds: u64) -> (u64, u64) {
+        let raw_reward = bets * odds;
+        let reward = raw_reward * RATIO;
+        (raw_reward, reward)
     }
 
     /// 上升逻辑处理，根据状态决定是否减少池底或调整波浪，返回是否命中
