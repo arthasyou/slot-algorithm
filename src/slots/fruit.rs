@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::{rngs::StdRng, Rng};
 use serde::{Deserialize, Serialize};
 
 use crate::pool::Pool;
@@ -25,6 +25,16 @@ pub enum GeneralLevel {
     Medium,  // 中等赔率等级
     Low,     // 较低赔率等级
     Minimal, // 最小赔率等级
+}
+
+impl GeneralLevel {
+    fn get_position(&self) -> u8 {
+        match self {
+            GeneralLevel::High => 0,
+            GeneralLevel::Medium => 1,
+            _ => 2,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Hash, PartialEq, Eq)]
@@ -71,10 +81,6 @@ pub struct FruitBet {
 }
 
 impl FruitBet {
-    pub fn new(symbol: FruitSymbol, value: u32) -> Self {
-        Self { symbol, value }
-    }
-
     fn draw(&self, level: &GeneralLevel, pool: &mut Pool) -> (bool, u64) {
         let odds = self.symbol.get_odds(level) as u64;
         pool.draw(self.value as u64, odds)
@@ -90,7 +96,7 @@ pub struct FruitReward {
 }
 
 impl FruitReward {
-    pub fn new(symbol: FruitSymbol, bet: u64, reward: u64, flag: bool) -> Self {
+    fn new(symbol: FruitSymbol, bet: u64, reward: u64, flag: bool) -> Self {
         Self {
             symbol,
             bet,
@@ -101,7 +107,7 @@ impl FruitReward {
 }
 
 pub fn draw(fruits: Vec<FruitBet>, pool: &mut Pool) -> Vec<FruitReward> {
-    let level = random_level(); // 获取一次 level
+    let level = random_level(pool.get_mut_rng()); // 获取一次 level
     fruits
         .into_iter()
         .map(|bet| {
@@ -111,8 +117,8 @@ pub fn draw(fruits: Vec<FruitBet>, pool: &mut Pool) -> Vec<FruitReward> {
         .collect()
 }
 
-pub fn random_level() -> GeneralLevel {
-    let mut rng = rand::thread_rng();
+pub fn random_level(rng: &mut StdRng) -> GeneralLevel {
+    // let mut rng = rand::thread_rng();
     match rng.gen_range(0..4) {
         0 => GeneralLevel::High,
         1 => GeneralLevel::Medium,

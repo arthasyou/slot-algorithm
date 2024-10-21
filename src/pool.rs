@@ -26,7 +26,6 @@ pub struct Pool {
     waves: Vec<u64>,      // 波浪
     segment: (u64, u64),  // 分段
     rng: StdRng,
-    // rng: Arc<Mutex<StdRng>>, // 新增字段：随机数生成器
 }
 
 impl Pool {
@@ -107,6 +106,10 @@ impl Pool {
         } else {
             (false, 0) // 未命中时返回 0
         }
+    }
+
+    pub fn get_mut_rng(&mut self) -> &mut StdRng {
+        &mut self.rng
     }
 
     pub fn get_id(&self) -> u32 {
