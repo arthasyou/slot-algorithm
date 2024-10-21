@@ -1,6 +1,6 @@
 use slot_algorithm::{
     pool::Pool,
-    slots::fruit::{self, FruitBet, FruitReward, FruitSymbol},
+    slots::fruit::{self, FruitBet, FruitDraw, FruitSymbol},
 };
 
 fn main() {
@@ -21,7 +21,7 @@ fn main() {
         },
     ];
 
-    let rewards: Vec<FruitReward> = fruit::draw(fruits, &mut pool);
+    let rewards: FruitDraw = fruit::draw(fruits, &mut pool);
     // let a = pool.draw(1, 2);
     println!("{:?}", rewards);
 
