@@ -137,9 +137,10 @@ fn create_pool(
     brokerage: u64,
     advance: u64,
 ) -> Pool {
-    let mut waves = wave::create_wave(pot, 0, boundary);
+    let mut rng = StdRng::from_entropy();
+    let mut waves = wave::create_wave(pot, 0, boundary, &mut rng);
     let segment = wave::create_segment(&mut waves, pot);
-    let rng = StdRng::from_entropy();
+
     Pool {
         id,
         owner_id,

@@ -1,4 +1,4 @@
-use rand::{seq::SliceRandom, Rng};
+use rand::{rngs::StdRng, seq::SliceRandom, Rng};
 
 const GOLD_LESS: [f64; 11] = [
     0.382, 0.382, 0.5, 0.5, 0.5, 0.618, 0.618, 0.618, 0.764, 0.764, 0.764,
@@ -8,15 +8,15 @@ const GOLD_MORE: [f64; 3] = [1.0, 1.309, 1.618];
 const GOLD_ADJST_MORE: [f64; 3] = [1.0, 1.309, 1.618];
 const GOLD_ADJST_LESS: [f64; 9] = [0.618, 0.618, 0.764, 0.764, 0.764, 1.0, 1.0, 1.0, 1.171];
 
-pub fn create_wave(pot: u64, baseline: u64, boundary: u64) -> Vec<u64> {
+pub fn create_wave(pot: u64, baseline: u64, boundary: u64, rng: &mut StdRng) -> Vec<u64> {
     let down = pot - baseline;
     let up = if pot > boundary { 0 } else { boundary - pot };
     let rand = rand::thread_rng().gen_range(0..(down + up));
 
     let wave: Vec<f64> = if rand < up {
-        span_wave(pot as f64, boundary as f64)
+        span_wave(pot as f64, boundary as f64, rng)
     } else {
-        span_wave(pot as f64, baseline as f64)
+        span_wave(pot as f64, baseline as f64, rng)
     };
 
     // 将 `Vec<f64>` 转换为 `Vec<u64>`
@@ -32,9 +32,9 @@ pub fn create_segment(waves: &mut Vec<u64>, pot: u64) -> (u64, u64) {
     }
 }
 
-fn span_wave(from: f64, to: f64) -> Vec<f64> {
+fn span_wave(from: f64, to: f64, rng: &mut StdRng) -> Vec<f64> {
     let len = to - from;
-    let wave = generate_wave(len);
+    let wave = generate_wave(len, rng);
     wave.into_iter()
         .scan(from, |acc, x| {
             let point = *acc + x;
@@ -44,29 +44,29 @@ fn span_wave(from: f64, to: f64) -> Vec<f64> {
         .collect()
 }
 
-fn generate_wave(len: f64) -> Vec<f64> {
+fn generate_wave(len: f64, rng: &mut StdRng) -> Vec<f64> {
     let ratios = driving_wave(5);
     let lens = ratio_to_len(len, ratios);
-    create_level_wave(lens, 3)
+    create_level_wave(lens, 3, rng)
 }
 
-fn create_level_wave(lens: Vec<f64>, level: u32) -> Vec<f64> {
+fn create_level_wave(lens: Vec<f64>, level: u32, rng: &mut StdRng) -> Vec<f64> {
     if level == 0 {
         return lens;
     }
     let mut new_lens = Vec::new();
     for l in lens {
-        let sub_wave = create_sub_wave(l);
+        let sub_wave = create_sub_wave(l, rng);
         new_lens.extend(sub_wave);
     }
-    create_level_wave(new_lens, level - 1)
+    create_level_wave(new_lens, level - 1, rng)
 }
 
-fn create_sub_wave(len: f64) -> Vec<f64> {
+fn create_sub_wave(len: f64, rng: &mut StdRng) -> Vec<f64> {
     let ratios = if rand::random::<bool>() {
         driving_wave(5)
     } else {
-        adjustment_wave()
+        adjustment_wave(rng)
     };
     ratio_to_len(len, ratios)
 }
@@ -98,18 +98,18 @@ fn span_driving_coefficient(n: usize) -> Vec<f64> {
     coefficients
 }
 
-fn adjustment_wave() -> Vec<f64> {
-    let coefficients = span_adjustment_coefficient(3);
+fn adjustment_wave(rng: &mut StdRng) -> Vec<f64> {
+    let coefficients = span_adjustment_coefficient(3, rng);
     span_ratio(coefficients)
 }
 
-fn span_adjustment_coefficient(n: usize) -> Vec<f64> {
+fn span_adjustment_coefficient(n: usize, rng: &mut StdRng) -> Vec<f64> {
     let mut coefficients = Vec::new();
     for i in 1..=n {
         let ratio = if i % 2 == 1 {
-            *GOLD_ADJST_MORE.choose(&mut rand::thread_rng()).unwrap()
+            *GOLD_ADJST_MORE.choose(rng).unwrap()
         } else {
-            -*GOLD_ADJST_LESS.choose(&mut rand::thread_rng()).unwrap()
+            -*GOLD_ADJST_LESS.choose(rng).unwrap()
         };
         coefficients.push(ratio);
     }
