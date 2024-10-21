@@ -93,6 +93,7 @@ impl Pool {
     /// 根据传入的 WaveState 执行 draw 方法，并返回命中结果和 reward 值
     pub fn draw(&mut self, bets: u64, odds: u64) -> (bool, u64) {
         let state = self.get_state();
+        println!("{:?}", state);
         self.update_pool_with_bets(bets);
         let reward = self.calculate_reward(bets, odds);
 
