@@ -21,7 +21,6 @@ pub struct Pool {
     pub jackpot: u64,         // 彩金
     pub suction: u64,         // 吸码量
     pub brokerage: u64,       // 佣金
-    pub bonus: u64,           // 总赢分
     pub advance: u64,         // 垫分
     waves: Vec<u64>,          // 波浪
     segment: (u64, u64),      // 分段
@@ -53,8 +52,7 @@ impl Pool {
             0,
             0,
             0,
-            0,
-            pot,
+            advance,
         )
     }
 
@@ -70,7 +68,6 @@ impl Pool {
         jackpot: u64,
         suction: u64,
         brokerage: u64,
-        bonus: u64,
         advance: u64,
     ) -> Self {
         create_pool(
@@ -85,7 +82,6 @@ impl Pool {
             jackpot,
             suction,
             brokerage,
-            bonus,
             advance,
         )
     }
@@ -93,7 +89,6 @@ impl Pool {
     /// 根据传入的 WaveState 执行 draw 方法，并返回命中结果和 reward 值
     pub fn draw(&mut self, bets: u64, odds: u64) -> (bool, u64) {
         let state = self.get_state();
-        println!("{:?}", state);
         self.update_pool_with_bets(bets);
         let reward = self.calculate_reward(bets, odds);
 
@@ -140,7 +135,6 @@ fn create_pool(
     jackpot: u64,
     suction: u64,
     brokerage: u64,
-    bonus: u64,
     advance: u64,
 ) -> Pool {
     let mut waves = wave::create_wave(pot, 0, boundary);
@@ -159,7 +153,6 @@ fn create_pool(
         jackpot,
         suction,
         brokerage,
-        bonus,
         advance,
         waves,
         segment,
@@ -223,7 +216,6 @@ impl Pool {
     fn fall(&mut self, odds: u64, reward: u64) -> bool {
         match self.analyzing_fall(reward) {
             FallState::Normal => {
-                println!("normal fall");
                 if self.fall_run(odds) {
                     self.fall_action(reward);
                     true
@@ -232,12 +224,10 @@ impl Pool {
                 }
             }
             FallState::Win => {
-                println!("win fall");
                 self.fall_action(reward);
                 true
             }
             FallState::Reflesh => {
-                println!("reflush fall");
                 self.consume_and_segment();
                 // self.create_new_wave_and_segment();
                 false
@@ -254,10 +244,7 @@ impl Pool {
                     false => FallState::Normal,
                 }
             }
-            false => {
-                println!("reward: {}, Pot: {}", reward, self.pot);
-                FallState::Reflesh
-            }
+            false => FallState::Reflesh,
         }
     }
 
@@ -291,10 +278,8 @@ impl Pool {
     fn decrease_pot(&mut self, reward: u64) {
         if self.pot >= reward {
             self.pot -= reward;
-            self.bonus += reward;
         } else {
             // 如果 reward 超过了 pot，仅能扣除 pot 的全部值，并增加相应的 bonus
-            self.bonus += self.pot;
             self.pot = 0;
         }
     }
@@ -307,7 +292,6 @@ impl Pool {
 
             // 如果 waves 已空，则创建新的波浪
             if self.waves.is_empty() {
-                println!("waves: {:?}", &self.waves);
                 self.create_wave();
             }
         }
