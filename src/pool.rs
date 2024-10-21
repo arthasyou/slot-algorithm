@@ -9,22 +9,22 @@ pub const RATIO: u64 = 10000; //比率 万分比
 
 #[derive(Debug, Clone)]
 pub struct Pool {
-    id: u32,              // ID
-    owner_id: u32,        // 所有者 ID
-    bet_unit: u64,        // 每分价值
-    base_line: u64,       // 底线
-    boundary: u64,        // 边界线
-    brokerage_ratio: u64, // 佣金比率
-    jackpot_ratio: u64,   // 彩金比率
-    pot_ratio: u64,       // 池底比率
-    pot: u64,             // 当前池底
-    jackpot: u64,         // 彩金
-    suction: u64,         // 吸码量
-    brokerage: u64,       // 佣金
-    bonus: u64,           // 总赢分
-    advance: u64,         // 垫分
-    waves: Vec<u64>,      // 波浪
-    segment: (u64, u64),  // 分段
+    pub id: u32,              // ID
+    pub owner_id: u32,        // 所有者 ID
+    pub bet_unit: u64,        // 每分价值
+    pub base_line: u64,       // 底线
+    pub boundary: u64,        // 边界线
+    pub brokerage_ratio: u64, // 佣金比率
+    pub jackpot_ratio: u64,   // 彩金比率
+    pub pot_ratio: u64,       // 池底比率
+    pub pot: u64,             // 当前池底
+    pub jackpot: u64,         // 彩金
+    pub suction: u64,         // 吸码量
+    pub brokerage: u64,       // 佣金
+    pub bonus: u64,           // 总赢分
+    pub advance: u64,         // 垫分
+    waves: Vec<u64>,          // 波浪
+    segment: (u64, u64),      // 分段
     rng: StdRng,
 }
 
@@ -110,14 +110,6 @@ impl Pool {
 
     pub fn get_mut_rng(&mut self) -> &mut StdRng {
         &mut self.rng
-    }
-
-    pub fn get_id(&self) -> u32 {
-        self.id
-    }
-
-    pub fn get_owner_id(&self) -> u32 {
-        self.owner_id
     }
 
     /// 更新 brokerage_ratio 和 pot_ratio，确保它们之和等于 RATIO
