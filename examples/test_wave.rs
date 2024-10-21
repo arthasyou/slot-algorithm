@@ -3,7 +3,7 @@ use slot_algorithm::wave;
 
 fn main() {
     // 假设这里调用了 wave 模块生成波浪
-    let a = wave::create_wave(900, 0, 10000);
+    let a = wave::create_wave(0, 0, 10000);
 
     // 创建一个 800x600 的绘图区域
     let root_area = BitMapBackend::new("wave_output.png", (800, 600)).into_drawing_area();

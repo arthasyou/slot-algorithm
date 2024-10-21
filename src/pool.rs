@@ -300,6 +300,7 @@ impl Pool {
 
             // 如果 waves 已空，则创建新的波浪
             if self.waves.is_empty() {
+                println!("waves: {:?}", &self.waves);
                 self.create_wave();
             }
         }
@@ -319,11 +320,7 @@ impl Pool {
 
     /// 创建新的波浪
     fn create_wave(&mut self) {
-        let waves = wave::create_wave(
-            self.pot * RATIO,
-            self.base_line * RATIO,
-            self.boundary * RATIO,
-        );
+        let waves = wave::create_wave(self.pot, self.base_line, self.boundary);
         self.waves = waves;
     }
 
