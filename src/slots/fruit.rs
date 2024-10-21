@@ -67,6 +67,29 @@ pub enum FruitSymbol {
 }
 
 impl FruitSymbol {
+    fn get_odds(&self, level: &GeneralLevel) -> u8 {
+        match self {
+            FruitSymbol::Bar => match level {
+                GeneralLevel::High => BAR_HIGH_ODDS,
+                GeneralLevel::Medium => BAR_MEDIUM_ODDS,
+                _ => BAR_LOW_ODDS,
+            },
+            FruitSymbol::LuckySeven | FruitSymbol::Star | FruitSymbol::Watermelon => match level {
+                GeneralLevel::High => GENERAL_HIGH_ODDS,
+                GeneralLevel::Medium => GENERAL_MEDIUM_ODDS,
+                GeneralLevel::Low => GENERAL_LOW_ODDS,
+                GeneralLevel::Minimal => GENERAL_MINIMAL_ODDS,
+            },
+            FruitSymbol::Bell | FruitSymbol::Lemon | FruitSymbol::Orange => match level {
+                GeneralLevel::High => SECONDARY_HIGH_ODDS,
+                GeneralLevel::Medium => SECONDARY_MEDIUM_ODDS,
+                GeneralLevel::Low => SECONDARY_LOW_ODDS,
+                GeneralLevel::Minimal => SECONDARY_MINIMAL_ODDS,
+            },
+            FruitSymbol::Apple => APPLE_ODDS,
+        }
+    }
+
     fn get_position(&self, level: &GeneralLevel, rng: &mut StdRng) -> u8 {
         match self {
             FruitSymbol::Bar => match level {
@@ -88,21 +111,21 @@ impl FruitSymbol {
             },
             FruitSymbol::Bell => match level {
                 GeneralLevel::Minimal => BELL_POSITION_MINIMA,
-                _ => match rng.gen_range(0..1) {
+                _ => match rng.gen_range(0..2) {
                     0 => BELL_POSITION_BIG[0],
                     _ => BELL_POSITION_BIG[1],
                 },
             },
             FruitSymbol::Lemon => match level {
                 GeneralLevel::Minimal => LEMON_POSITION_MINIMA,
-                _ => match rng.gen_range(0..1) {
+                _ => match rng.gen_range(0..2) {
                     0 => LEMON_POSITION_BIG[0],
                     _ => LEMON_POSITION_BIG[1],
                 },
             },
             FruitSymbol::Orange => match level {
                 GeneralLevel::Minimal => ORANGE_POSITION_MINIMA,
-                _ => match rng.gen_range(0..1) {
+                _ => match rng.gen_range(0..2) {
                     0 => ORANGE_POSITION_BIG[0],
                     _ => ORANGE_POSITION_BIG[1],
                 },
@@ -113,29 +136,6 @@ impl FruitSymbol {
                 2 => APPLE_POSITION[2],
                 _ => APPLE_POSITION[3],
             },
-        }
-    }
-
-    fn get_odds(&self, level: &GeneralLevel) -> u8 {
-        match self {
-            FruitSymbol::Bar => match level {
-                GeneralLevel::High => BAR_HIGH_ODDS,
-                GeneralLevel::Medium => BAR_MEDIUM_ODDS,
-                _ => BAR_LOW_ODDS,
-            },
-            FruitSymbol::LuckySeven | FruitSymbol::Star | FruitSymbol::Watermelon => match level {
-                GeneralLevel::High => GENERAL_HIGH_ODDS,
-                GeneralLevel::Medium => GENERAL_MEDIUM_ODDS,
-                GeneralLevel::Low => GENERAL_LOW_ODDS,
-                GeneralLevel::Minimal => GENERAL_MINIMAL_ODDS,
-            },
-            FruitSymbol::Bell | FruitSymbol::Lemon | FruitSymbol::Orange => match level {
-                GeneralLevel::High => SECONDARY_HIGH_ODDS,
-                GeneralLevel::Medium => SECONDARY_MEDIUM_ODDS,
-                GeneralLevel::Low => SECONDARY_LOW_ODDS,
-                GeneralLevel::Minimal => SECONDARY_MINIMAL_ODDS,
-            },
-            FruitSymbol::Apple => APPLE_ODDS,
         }
     }
 }
