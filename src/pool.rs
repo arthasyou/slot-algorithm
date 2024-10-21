@@ -39,8 +39,8 @@ impl Pool {
         boundary: u64,
         advance: u64,
     ) -> Self {
-        let pot = advance * RATIO;
-        let boundary = boundary * RATIO;
+        let pot = advance;
+        let boundary = boundary;
         create_pool(
             id,
             owner_id,
