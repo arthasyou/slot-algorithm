@@ -258,6 +258,10 @@ fn calculate_rewards(
 
 fn get_missed_position(missed: &Vec<FruitSymbol>, rng: &mut StdRng) -> Vec<u8> {
     let symbol = missed.choose(rng).unwrap();
-    let pos = symbol.get_position(&GeneralLevel::Minimal, rng);
+    let level = match rng.gen_range(0..2) {
+        0 => GeneralLevel::Minimal,
+        _ => GeneralLevel::Low,
+    };
+    let pos = symbol.get_position(&level, rng);
     vec![pos]
 }
