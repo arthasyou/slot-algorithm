@@ -223,6 +223,7 @@ impl Pool {
     fn fall(&mut self, odds: u64, reward: u64) -> bool {
         match self.analyzing_fall(reward) {
             FallState::Normal => {
+                println!("normal fall");
                 if self.fall_run(odds) {
                     self.fall_action(reward);
                     true
@@ -231,10 +232,12 @@ impl Pool {
                 }
             }
             FallState::Win => {
+                println!("win fall");
                 self.fall_action(reward);
                 true
             }
             FallState::Reflesh => {
+                println!("reflush fall");
                 self.create_new_wave_and_segment();
                 false
             }
