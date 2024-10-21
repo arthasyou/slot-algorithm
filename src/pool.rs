@@ -108,10 +108,10 @@ impl Pool {
         &mut self.rng
     }
 
-    /// 更新 brokerage_ratio 和 pot_ratio，确保它们之和等于 RATIO
-    pub fn update_ratios(&mut self, new_brokerage_ratio: u64) {
+    /// 更新 brokerage_ratio jackpot_ratio 和 pot_ratio，确保它们之和等于 RATIO
+    pub fn update_ratios(&mut self, new_brokerage_ratio: u64, new_jackpot_ratio: u64) {
         self.brokerage_ratio = new_brokerage_ratio;
-        self.pot_ratio = RATIO - new_brokerage_ratio;
+        self.pot_ratio = RATIO - new_brokerage_ratio - new_jackpot_ratio;
     }
 
     pub fn get_segment(&self) -> (u64, u64) {
