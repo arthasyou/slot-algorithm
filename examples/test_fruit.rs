@@ -4,7 +4,7 @@ use slot_algorithm::{
 };
 
 fn main() {
-    let mut pool = Pool::new(1, 1, 1, 1000, 100000, 10000);
+    let mut pool = Pool::new(1, 1, 1, 1000, 100, 100000, 10000);
 
     let fruits = vec![
         FruitBet {

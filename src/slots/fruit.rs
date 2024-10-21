@@ -27,7 +27,7 @@ pub enum GeneralLevel {
     Minimal, // 最小赔率等级
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Hash, PartialEq, Eq)]
 pub enum FruitSymbol {
     Bar,
     LuckySeven,
@@ -65,6 +65,23 @@ impl FruitSymbol {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct FruitBet {
+    pub symbol: FruitSymbol,
+    pub value: u32,
+}
+
+impl FruitBet {
+    pub fn new(symbol: FruitSymbol, value: u32) -> Self {
+        Self { symbol, value }
+    }
+
+    fn draw(&self, level: &GeneralLevel, pool: &mut Pool) -> (bool, u64) {
+        let odds = self.symbol.get_odds(level) as u64;
+        pool.draw(self.value as u64, odds)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FruitReward {
     pub symbol: FruitSymbol,
     pub bet: u64,
@@ -83,30 +100,13 @@ impl FruitReward {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FruitBet {
-    pub symbol: FruitSymbol,
-    pub value: u64,
-}
-
-impl FruitBet {
-    pub fn new(symbol: FruitSymbol, value: u64) -> Self {
-        Self { symbol, value }
-    }
-
-    fn draw(&self, level: &GeneralLevel, pool: &mut Pool) -> (bool, u64) {
-        let odds = self.symbol.get_odds(level) as u64;
-        pool.draw(self.value, odds)
-    }
-}
-
 pub fn draw(fruits: Vec<FruitBet>, pool: &mut Pool) -> Vec<FruitReward> {
     let level = random_level(); // 获取一次 level
     fruits
         .into_iter()
         .map(|bet| {
             let (flag, reward) = bet.draw(&level, pool);
-            FruitReward::new(bet.symbol, bet.value, reward, flag) // 创建 FruitReward
+            FruitReward::new(bet.symbol, bet.value as u64, reward, flag) // 创建 FruitReward
         })
         .collect()
 }
