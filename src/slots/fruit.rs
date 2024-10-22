@@ -54,6 +54,16 @@ pub enum GeneralLevel {
     Minimal, // 最小赔率等级
 }
 
+impl GeneralLevel {
+    fn get_position(&self) -> u8 {
+        match self {
+            GeneralLevel::High => 0,
+            GeneralLevel::Medium => 1,
+            _ => 2,
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, Hash, PartialEq, Eq)]
 pub enum FruitSymbol {
     Bar,
@@ -185,6 +195,7 @@ impl FruitReward {
 pub struct FruitDraw {
     pub rewards: Vec<FruitReward>,
     pub positions: Vec<u8>,
+    pub odds: u8,
 }
 
 pub fn draw(fruits: Vec<FruitBet>, pool: &mut Pool) -> FruitDraw {
@@ -206,6 +217,7 @@ pub fn draw(fruits: Vec<FruitBet>, pool: &mut Pool) -> FruitDraw {
     FruitDraw {
         rewards,
         positions: new_positions,
+        odds: level.get_position(),
     }
 }
 
