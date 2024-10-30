@@ -1,5 +1,6 @@
 use rand::{rngs::StdRng, seq::SliceRandom, Rng};
 use serde::{Deserialize, Serialize};
+use validator::Validate;
 
 use crate::pool::Pool;
 
@@ -150,9 +151,10 @@ impl FruitSymbol {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct FruitBet {
     pub symbol: FruitSymbol,
+    #[validate(range(min = 1, max = 100, message = "Amount must be between 1 and 100"))]
     pub value: u32,
 }
 
