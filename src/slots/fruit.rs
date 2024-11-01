@@ -212,7 +212,6 @@ pub fn draw(fruits: Vec<FruitBet>, pool: &mut Pool) -> FruitDraw {
         },
         1 => positions,
         _ => {
-            positions.shuffle(pool.get_mut_rng());
             positions.insert(0, MULTIMPLE);
             positions
         }
@@ -253,12 +252,13 @@ fn remove_symbol(symbols: &mut Vec<FruitSymbol>, target: &FruitSymbol) {
 }
 
 fn calculate_rewards(
-    fruits: Vec<FruitBet>,
+    mut fruits: Vec<FruitBet>,
     pool: &mut Pool,
     level: &GeneralLevel,    // 假设 random_level 返回的类型为 LevelType
     positions: &mut Vec<u8>, // 假设 positions 是 u8 类型
     missed: &mut Vec<FruitSymbol>,
 ) -> Vec<FruitReward> {
+    fruits.shuffle(pool.get_mut_rng());
     fruits
         .into_iter()
         .map(|bet| {
