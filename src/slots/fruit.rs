@@ -212,6 +212,7 @@ pub fn draw(fruits: Vec<FruitBet>, pool: &mut Pool) -> FruitDraw {
         },
         1 => positions,
         _ => {
+            positions.shuffle(pool.get_mut_rng());
             positions.insert(0, MULTIMPLE);
             positions
         }
@@ -224,11 +225,12 @@ pub fn draw(fruits: Vec<FruitBet>, pool: &mut Pool) -> FruitDraw {
 }
 
 pub fn random_level(rng: &mut StdRng) -> GeneralLevel {
-    // let mut rng = rand::thread_rng();
-    match rng.gen_range(0..4) {
-        0 => GeneralLevel::High,
-        1 => GeneralLevel::Medium,
-        2 => GeneralLevel::Low,
+    match rng.gen_range(0..10) {
+        0..=4 => match rng.gen_range(0..3) {
+            0 => GeneralLevel::High,
+            1 => GeneralLevel::Medium,
+            _ => GeneralLevel::Low,
+        },
         _ => GeneralLevel::Minimal,
     }
 }
