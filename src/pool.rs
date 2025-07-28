@@ -241,11 +241,13 @@ impl Pool {
     fn analyzing_fall(&self, reward: u64) -> FallState {
         match reward < self.pot {
             true => {
-                let (top, _) = self.segment;
-                match self.pot > top {
-                    true => FallState::Win,
-                    false => FallState::Normal,
-                }
+                FallState::Normal
+                // 从上升转到下降必中奖
+                // let (top, _) = self.segment;
+                // match self.pot > top {
+                //     true => FallState::Win,
+                //     false => FallState::Normal,
+                // }
             }
             false => FallState::Reflesh,
         }
